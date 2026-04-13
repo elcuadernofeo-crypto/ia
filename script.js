@@ -62,7 +62,9 @@ async function fetchEvents(fetchInfo) {
   const cfg = getStoredConfig();
   if (!cfg) throw new Error('Sin configuración');
 
-  const url = buildApiUrl(cfg.apiUrl, cfg.token, fetchInfo.startStr, fetchInfo.endStr);
+  const start = fetchInfo.startStr.slice(0, 10);
+  const end = fetchInfo.endStr.slice(0, 10);
+  const url = buildApiUrl(cfg.apiUrl, cfg.token, start, end);
   const res = await fetch(url);
   const data = await res.json();
 
