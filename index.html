@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f1c2e">
+  <meta name="description" content="Horario de clases (solo lectura)">
+  <title>Horario</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+</head>
+<body>
+  <div id="screen-config" class="screen screen--config" hidden>
+    <div class="config-card">
+      <h1 class="config-title">Configuración</h1>
+      <p class="config-hint">La URL y el token no se suben al repositorio: solo se guardan en este dispositivo.</p>
+      <form id="form-config" class="config-form">
+        <label for="input-api-url">URL de la API (Apps Script /exec)</label>
+        <input type="url" id="input-api-url" name="apiUrl" required autocomplete="off" placeholder="https://script.google.com/macros/s/.../exec">
+
+        <label for="input-token">Token</label>
+        <input type="password" id="input-token" name="token" required autocomplete="off" placeholder="Token secreto">
+
+        <button type="submit" class="btn btn--primary">Guardar y cargar horario</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="screen-app" class="screen screen--app" hidden>
+    <header class="app-header">
+      <h1 class="app-title">Horario</h1>
+      <div class="app-actions">
+        <button type="button" id="btn-refresh" class="btn btn--ghost" title="Recargar datos">Actualizar</button>
+        <button type="button" id="btn-reconfig" class="btn btn--ghost" title="Cambiar URL o token">Ajustes</button>
+      </div>
+    </header>
+
+    <div class="leyenda-colores" aria-label="Leyenda de colores de notas">
+      <span class="leyenda-item"><span class="leyenda-dot leyenda-dot--personal"></span> Personal</span>
+      <span class="leyenda-item"><span class="leyenda-dot leyenda-dot--recordatorio"></span> Recordatorio</span>
+      <span class="leyenda-item"><span class="leyenda-dot leyenda-dot--urgente"></span> Urgente</span>
+      <span class="leyenda-item"><span class="leyenda-dot leyenda-dot--clase"></span> Nota tipo clase</span>
+    </div>
+
+    <div class="calendario-wrap">
+      <div id="calendar"></div>
+    </div>
+    <p id="status-bar" class="status-bar" role="status" aria-live="polite"></p>
+  </div>
+
+  <div id="modal-backdrop" class="modal-backdrop" hidden aria-hidden="true"></div>
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+    <div class="modal__inner">
+      <button type="button" class="modal__close" id="modal-close" aria-label="Cerrar">&times;</button>
+      <h2 id="modal-title" class="modal__title">Detalle</h2>
+      <div id="modal-body" class="modal__body"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
