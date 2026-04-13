@@ -244,7 +244,6 @@ body {
   position: fixed;
   inset: 0;
   z-index: 1001;
-  display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
