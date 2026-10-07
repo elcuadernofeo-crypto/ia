@@ -16,10 +16,38 @@
   <link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
 <body>
-  <div id="screen-config" class="screen screen--config" hidden>
-    <div class="config-card">
-      <h1 class="config-title">Configuración</h1>
-      <p class="config-hint">La URL y el token no se suben al repositorio: solo se guardan en este dispositivo.</p>
+  <div id="screen-app" class="screen screen--app" hidden>
+    <header class="app-header">
+      <h1 class="app-title">Horario</h1>
+      <div class="app-actions">
+        <button type="button" id="btn-refresh" class="btn btn--ghost" title="Recargar datos">Actualizar</button>
+        <button type="button" id="btn-reconfig" class="btn btn--ghost" title="Ajustes de conexión">Ajustes</button>
+      </div>
+    </header>
+
+    <div class="leyenda-colores" aria-label="Leyenda de colores">
+      <span class="leyenda-item"><span class="leyenda-dot leyenda-dot--personal"></span> Personal</span>
+      <span class="leyenda-item"><span class="leyenda-dot leyenda-dot--recordatorio"></span> Recordatorio</span>
+      <span class="leyenda-item"><span class="leyenda-dot leyenda-dot--urgente"></span> Urgente</span>
+      <span class="leyenda-item"><span class="leyenda-dot leyenda-dot--clase"></span> Alumno</span>
+      <span class="leyenda-item"><span class="leyenda-dot leyenda-dot--profesor"></span> Profesor</span>
+    </div>
+
+    <div class="calendario-wrap">
+      <div id="calendar"></div>
+    </div>
+    <p id="status-bar" class="status-bar" role="status" aria-live="polite"></p>
+  </div>
+
+  <!-- Panel/Modal de Configuración (Oculto cuando ya hay URL y token en caché) -->
+  <div id="modal-config-backdrop" class="modal-backdrop" hidden aria-hidden="true"></div>
+  <div id="screen-config" class="modal-config" hidden role="dialog" aria-modal="true" aria-labelledby="config-title">
+    <div class="config-card modal-config-card">
+      <div class="config-header">
+        <h2 id="config-title" class="config-title">Ajustes de Conexión</h2>
+        <button type="button" id="btn-config-close" class="modal__close" aria-label="Cerrar ajustes" hidden>&times;</button>
+      </div>
+      <p class="config-hint">La URL y el token se guardan de forma privada en el almacenamiento local de este dispositivo.</p>
       <form id="form-config" class="config-form">
         <label for="input-api-url">URL de la API (Apps Script /exec)</label>
         <input type="text" id="input-api-url" name="apiUrl" required autocomplete="off" placeholder="https://script.google.com/macros/s/.../exec">
@@ -27,31 +55,12 @@
         <label for="input-token">Token</label>
         <input type="password" id="input-token" name="token" required autocomplete="off" placeholder="Token secreto">
 
-        <button type="submit" class="btn btn--primary">Guardar y cargar horario</button>
+        <div class="config-actions">
+          <button type="submit" class="btn btn--primary">Guardar y Cargar</button>
+          <button type="button" id="btn-config-cancel" class="btn btn--ghost btn--cancel" hidden>Cancelar</button>
+        </div>
       </form>
     </div>
-  </div>
-
-  <div id="screen-app" class="screen screen--app" hidden>
-    <header class="app-header">
-      <h1 class="app-title">Horario</h1>
-      <div class="app-actions">
-        <button type="button" id="btn-refresh" class="btn btn--ghost" title="Recargar datos">Actualizar</button>
-        <button type="button" id="btn-reconfig" class="btn btn--ghost" title="Cambiar URL o token">Ajustes</button>
-      </div>
-    </header>
-
-    <div class="leyenda-colores" aria-label="Leyenda de colores de notas">
-      <span class="leyenda-item"><span class="leyenda-dot leyenda-dot--personal"></span> Personal</span>
-      <span class="leyenda-item"><span class="leyenda-dot leyenda-dot--recordatorio"></span> Recordatorio</span>
-      <span class="leyenda-item"><span class="leyenda-dot leyenda-dot--urgente"></span> Urgente</span>
-      <span class="leyenda-item"><span class="leyenda-dot leyenda-dot--clase"></span> Nota tipo clase</span>
-    </div>
-
-    <div class="calendario-wrap">
-      <div id="calendar"></div>
-    </div>
-    <p id="status-bar" class="status-bar" role="status" aria-live="polite"></p>
   </div>
 
   <div id="modal-backdrop" class="modal-backdrop" hidden aria-hidden="true"></div>

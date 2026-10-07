@@ -3,7 +3,7 @@
  * Si despliegas en subcarpeta de GitHub Pages, mantén manifest start_url/scope en "./" relativo.
  */
 
-const CACHE_NAME = 'horario-pwa-v5';
+const CACHE_NAME = 'horario-pwa-v6';
 const PRECACHE_URLS = [
   './',
   './index.html',

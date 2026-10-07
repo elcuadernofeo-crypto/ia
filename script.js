@@ -9,6 +9,9 @@ const LS_URL = 'horario_api_url';
 const LS_TOKEN = 'horario_api_token';
 
 const screenConfig = document.getElementById('screen-config');
+const modalConfigBackdrop = document.getElementById('modal-config-backdrop');
+const btnConfigClose = document.getElementById('btn-config-close');
+const btnConfigCancel = document.getElementById('btn-config-cancel');
 const screenApp = document.getElementById('screen-app');
 const formConfig = document.getElementById('form-config');
 const inputApiUrl = document.getElementById('input-api-url');
@@ -36,18 +39,28 @@ function getStoredConfig() {
   return { apiUrl: apiUrl.trim(), token: token.trim() };
 }
 
-function showConfigScreen(prefill) {
-  screenApp.hidden = true;
-  screenConfig.hidden = false;
-  if (prefill) {
-    inputApiUrl.value = prefill.apiUrl || '';
-    inputToken.value = prefill.token || '';
+function openConfigModal(isEditing) {
+  const cfg = getStoredConfig();
+  if (cfg) {
+    inputApiUrl.value = cfg.apiUrl || '';
+    inputToken.value = cfg.token || '';
   }
+  if (isEditing) {
+    if (btnConfigClose) btnConfigClose.hidden = false;
+    if (btnConfigCancel) btnConfigCancel.hidden = false;
+  } else {
+    if (btnConfigClose) btnConfigClose.hidden = true;
+    if (btnConfigCancel) btnConfigCancel.hidden = true;
+  }
+  screenConfig.hidden = false;
+  if (modalConfigBackdrop) modalConfigBackdrop.hidden = false;
+  document.body.style.overflow = 'hidden';
 }
 
-function showAppScreen() {
+function closeConfigModal() {
   screenConfig.hidden = true;
-  screenApp.hidden = false;
+  if (modalConfigBackdrop) modalConfigBackdrop.hidden = true;
+  document.body.style.overflow = '';
 }
 
 function buildApiUrl(base, token, startStr, endStr) {
@@ -366,8 +379,14 @@ formConfig.addEventListener('submit', (e) => {
 
   localStorage.setItem(LS_URL, apiUrl);
   localStorage.setItem(LS_TOKEN, token);
-  showAppScreen();
-  initCalendar();
+  closeConfigModal();
+  screenApp.hidden = false;
+  if (!calendar) {
+    initCalendar();
+  } else {
+    showStatus('Actualizando con nueva configuración…');
+    calendar.refetchEvents();
+  }
 });
 
 btnRefresh.addEventListener('click', () => {
@@ -378,9 +397,22 @@ btnRefresh.addEventListener('click', () => {
 });
 
 btnReconfig.addEventListener('click', () => {
-  destroyCalendar();
-  showConfigScreen(getStoredConfig());
+  openConfigModal(true);
 });
+
+if (btnConfigClose) {
+  btnConfigClose.addEventListener('click', closeConfigModal);
+}
+if (btnConfigCancel) {
+  btnConfigCancel.addEventListener('click', closeConfigModal);
+}
+if (modalConfigBackdrop) {
+  modalConfigBackdrop.addEventListener('click', () => {
+    if (getStoredConfig()) {
+      closeConfigModal();
+    }
+  });
+}
 
 modalClose.addEventListener('click', closeModal);
 modalBackdrop.addEventListener('click', closeModal);
@@ -389,7 +421,10 @@ modal.addEventListener('click', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !modal.hidden) closeModal();
+  if (e.key === 'Escape') {
+    if (!modal.hidden) closeModal();
+    else if (!screenConfig.hidden && getStoredConfig()) closeConfigModal();
+  }
 });
 
 function registerServiceWorker() {
@@ -408,10 +443,12 @@ function boot() {
   registerServiceWorker();
   const cfg = getStoredConfig();
   if (cfg) {
-    showAppScreen();
+    closeConfigModal();
+    screenApp.hidden = false;
     initCalendar();
   } else {
-    showConfigScreen();
+    screenApp.hidden = true;
+    openConfigModal(false);
   }
 }
 

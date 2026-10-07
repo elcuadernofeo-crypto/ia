@@ -43,6 +43,21 @@ body {
   display: flex;
 }
 
+.modal-config {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.modal-config[hidden] {
+  display: none !important;
+}
+
 .screen--app:not([hidden]) {
   display: block;
 }
@@ -57,17 +72,49 @@ body {
   box-shadow: 0 0 24px rgba(0, 242, 255, 0.12);
 }
 
+.modal-config-card {
+  position: relative;
+  z-index: 1001;
+  max-width: 460px;
+  animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.config-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
 .config-title {
-  margin: 0 0 8px;
-  font-size: 1.35rem;
+  margin: 0;
+  font-size: 1.25rem;
   color: var(--neon-cyan);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   text-shadow: 0 0 12px rgba(0, 242, 255, 0.35);
 }
 
+.config-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.config-actions .btn {
+  margin-top: 0;
+}
+
+.config-actions .btn--primary {
+  flex: 1;
+}
+
+.btn--cancel {
+  flex: 0 0 auto;
+}
+
 .config-hint {
-  margin: 0 0 20px;
+  margin: 0 0 16px;
   font-size: 0.85rem;
   color: var(--text-muted);
   line-height: 1.45;
@@ -201,6 +248,9 @@ body {
 }
 .leyenda-dot--clase {
   background: #3498db;
+}
+.leyenda-dot--profesor {
+  background: #c59b27;
 }
 
 .calendario-wrap {
@@ -422,7 +472,7 @@ body {
   box-shadow: 0 0 8px rgba(218, 165, 32, 0.4) !important;
 }
 
-/* Casilla dividida en la App móvil (división horizontal: uno encima de otro, 2, 3 o más partes ocupando 1 sola celda) */
+/* Casilla dividida en la App móvil (división VERTICAL: lado a lado en columnas, 2, 3 o más partes ocupando 1 sola celda) */
 .fc-event.fc-evento-dividido {
   background: transparent !important;
   border: none !important;
@@ -437,7 +487,7 @@ body {
 
 .fc-split-event-wrapper {
   display: flex !important;
-  flex-direction: column !important;
+  flex-direction: row !important; /* DIVISIÓN VERTICAL (LADO A LADO) */
   align-items: stretch !important;
   width: 100% !important;
   height: 100% !important;
@@ -451,36 +501,45 @@ body {
 .fc-split-part,
 .fc-split-half {
   flex: 1 1 0 !important;
-  width: 100% !important;
+  width: auto !important;
+  min-width: 0 !important;
   height: 100% !important;
   min-height: 0 !important;
   display: flex !important;
   align-items: center !important;
   gap: 3px !important;
-  padding: 1px 5px !important;
+  padding: 1px 4px !important;
   box-sizing: border-box !important;
   cursor: pointer !important;
   overflow: hidden !important;
   user-select: none !important;
+  transition: filter 0.2s ease !important;
+}
+
+.fc-split-part:hover {
+  filter: brightness(1.2) !important;
 }
 
 .fc-part-alumno,
-.fc-split-top {
+.fc-split-left {
   background: linear-gradient(135deg, #1e70bf 0%, #0d47a1 100%) !important;
   color: #ffffff !important;
 }
 
+/* Divisor vertical metálico entre partes */
 .fc-split-divider {
-  width: 100% !important;
-  height: 1px !important;
-  min-height: 1px !important;
-  background: linear-gradient(to right, #00f2ff, #ffffff, #ffd700) !important;
-  box-shadow: 0 0 3px rgba(255, 255, 255, 0.7) !important;
+  width: 1.5px !important;
+  min-width: 1.5px !important;
+  height: 100% !important;
+  background: linear-gradient(to bottom, #ffd700, #ffffff, #00f2ff) !important;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.8) !important;
+  z-index: 2 !important;
+  align-self: stretch !important;
 }
 
 .fc-part-profesor,
-.fc-split-bottom {
-  background: linear-gradient(135deg, #c59b27 0%, #9a7618 100%) !important;
+.fc-split-right {
+  background: linear-gradient(135deg, #c59b27 0%, #9a7618 50%, #b8860b 100%) !important;
   color: #ffffff !important;
 }
 
@@ -497,22 +556,23 @@ body {
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   line-height: 1.1 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6) !important;
 }
 
-/* Optimización para división en 3 o más partes horizontales en el móvil */
+/* Optimización para división en 3 o más partes verticales en móvil */
 .fc-partes-3 .fc-split-part,
 .fc-partes-4 .fc-split-part {
-  padding: 0 3px !important;
+  padding: 1px 2px !important;
   gap: 2px !important;
 }
 
 .fc-partes-3 .fc-split-icon,
 .fc-partes-4 .fc-split-icon {
-  font-size: 8.5px !important;
+  font-size: 9px !important;
 }
 
 .fc-partes-3 .fc-split-text,
 .fc-partes-4 .fc-split-text {
-  font-size: 9px !important;
+  font-size: 8.5px !important;
   font-weight: 600 !important;
 }
