@@ -133,14 +133,32 @@ function formatWhen(start) {
   );
 }
 
+function linkify(text) {
+  if (!text) return '';
+  const escaped = escapeHtml(text);
+  const urlRegex = /(https?:\/\/[^\s<]+|(?:www\.)[^\s<]+|[a-zA-Z0-9.-]+\.(?:com|org|net|es|edu|io|app|us|me)(?:\/[^\s<]*)?)/gi;
+  return escaped.replace(urlRegex, function(matched) {
+    let url = matched;
+    let trailing = '';
+    const punctMatch = matched.match(/[.,;:)\]]+$/);
+    if (punctMatch) {
+      trailing = punctMatch[0];
+      url = matched.slice(0, -trailing.length);
+    }
+    const href = /^https?:\/\//i.test(url) ? url : ('https://' + url);
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>${trailing}`;
+  }).replace(/\n/g, '<br>');
+}
+
 function onEventClick(info) {
   const ev = info.event;
   const idStr = String(ev.id);
   const start = ev.start;
+  const ep = ev.extendedProps || {};
 
   if (idStr.startsWith('libre_')) {
-    const tipo = (ev.extendedProps && ev.extendedProps.tipo) || '';
-    const nota = (ev.extendedProps && ev.extendedProps.nota) || ev.title || '';
+    const tipo = ep.tipo || '';
+    const nota = ep.nota || ev.title || '';
     const isLibre = !nota || ev.title === 'LIBRE';
     const html = `
       <dl>
@@ -149,13 +167,82 @@ function onEventClick(info) {
         <dt>Estado</dt>
         <dd>${isLibre ? 'Hora libre' : 'Nota en hora libre'}</dd>
         ${tipo ? `<dt>Tipo</dt><dd>${escapeHtml(tipo)}</dd>` : ''}
-        ${nota && !isLibre ? `<dt>Texto</dt><dd>${escapeHtml(nota)}</dd>` : ''}
+        ${nota && !isLibre ? `<dt>Texto</dt><dd>${linkify(nota)}</dd>` : ''}
       </dl>`;
     openModal(isLibre ? 'Hora libre' : 'Nota', html);
     return;
   }
 
-  const ep = ev.extendedProps || {};
+  // Casilla compartida (división horizontal en 2, 3 o más partes)
+  if (idStr.startsWith('compartido_') || ep.es_compartido) {
+    let items = ep.items || [];
+    if (!items.length) {
+      if (ep.evento_alumno) items.push({ tipo: 'alumno', titulo: ep.evento_alumno.nombre_alumno || ep.evento_alumno.title, datos: ep.evento_alumno });
+      if (ep.evento_profesor) items.push({ tipo: 'profesor', titulo: ep.evento_profesor.titulo, datos: ep.evento_profesor });
+    }
+    const total = items.length || 2;
+
+    let itemsHtml = items.map((it, idx) => {
+      const isAlumno = it.tipo === 'alumno';
+      const icon = isAlumno ? '👤' : '🎓';
+      const d = it.datos || {};
+      const ext = d.extendedProps || d;
+
+      if (isAlumno) {
+        const nombre = it.nombre_alumno || it.titulo || ext.nombre_alumno || d.title || 'Alumno';
+        const tel = ext.telefono || d.telefono || '';
+        const zoom = ext.link_zoom || d.link_zoom || '';
+        const idBono = ext.idBono != null && ext.idBono !== '' ? String(ext.idBono) : '';
+        const esUltima = ext.es_ultima_clase === true || ext.es_ultima_clase === 'true';
+
+        return `
+          <div style="background: rgba(30, 112, 191, 0.15); border: 1px solid rgba(0, 242, 255, 0.35); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+            <div style="font-weight: 700; color: #00f2ff; margin-bottom: 5px;">👤 Parte ${idx + 1}: ${escapeHtml(nombre)}</div>
+            ${tel ? `<div style="font-size: 0.85rem; margin-bottom: 4px;"><strong>Teléfono:</strong> <a href="tel:${escapeHtml(tel)}">${escapeHtml(tel)}</a></div>` : ''}
+            ${zoom ? `<div style="font-size: 0.85rem; margin-bottom: 4px;"><strong>Zoom:</strong> <a href="${escapeHtml(zoom)}" target="_blank" rel="noopener noreferrer">Abrir reunión Zoom</a></div>` : ''}
+            ${idBono ? `<div style="font-size: 0.82rem; color: #a0aec0;"><strong>Bono:</strong> #${escapeHtml(idBono)}${esUltima ? ' <span style="color: var(--neon-magenta); font-weight: 700;">(Última clase)</span>' : ''}</div>` : ''}
+          </div>
+        `;
+      } else {
+        const titulo = it.titulo || ext.titulo || d.title || 'Evento Profesor';
+        const desc = ext.descripcion || d.descripcion || '';
+        return `
+          <div style="background: rgba(197, 155, 39, 0.15); border: 1px solid rgba(255, 215, 0, 0.4); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+            <div style="font-weight: 700; color: #ffd700; margin-bottom: 5px;">🎓 Parte ${idx + 1}: ${escapeHtml(titulo)}</div>
+            ${desc ? `<div style="font-size: 0.85rem; line-height: 1.4;">${linkify(desc)}</div>` : '<div style="font-size: 0.8rem; color: #889;"><em>Sin notas adicionales</em></div>'}
+          </div>
+        `;
+      }
+    }).join('');
+
+    let html = `
+      <div style="margin-bottom: 14px;">
+        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--neon-cyan); font-weight: 700; margin-bottom: 4px;">Fecha y hora</div>
+        <div style="font-size: 0.95rem; font-weight: 500;">${escapeHtml(formatWhen(start))}</div>
+      </div>
+      ${itemsHtml}
+    `;
+    openModal(`⚡ Casilla Compartida (${total} partes)`, html);
+    return;
+  }
+
+  // Evento privado del profesor
+  if (idStr.startsWith('propia_') || ep.es_evento_profesor || ep.es_clase_propia) {
+    const titulo = ep.titulo || ev.title || 'Evento Profesor';
+    const desc = ep.descripcion || '';
+    const html = `
+      <dl>
+        <dt>Fecha y hora</dt>
+        <dd>${escapeHtml(formatWhen(start))}</dd>
+        <dt>Título</dt>
+        <dd style="color: #ffd700; font-weight: 700;">${escapeHtml(titulo)}</dd>
+        ${desc ? `<dt>Detalles / Enlaces</dt><dd style="line-height: 1.4;">${linkify(desc)}</dd>` : ''}
+      </dl>`;
+    openModal('🎓 Evento Profesor', html);
+    return;
+  }
+
+  // Clase normal de alumno
   const nombre = ep.nombre_alumno || ev.title || 'Clase';
   const telefono = ep.telefono || '';
   const linkZoom = ep.link_zoom || '';
@@ -169,7 +256,7 @@ function onEventClick(info) {
       <dt>Alumno</dt>
       <dd>${escapeHtml(nombre)}</dd>`;
   if (telefono) {
-    html += `<dt>Teléfono</dt><dd>${escapeHtml(telefono)}</dd>`;
+    html += `<dt>Teléfono</dt><dd><a href="tel:${escapeHtml(telefono)}">${escapeHtml(telefono)}</a></dd>`;
   }
   if (linkZoom) {
     const safe = escapeHtml(linkZoom);
@@ -202,7 +289,7 @@ function initCalendar() {
     firstDay: 1,
     nowIndicator: true,
     slotMinTime: '08:00:00',
-    slotMaxTime: '22:00:00',
+    slotMaxTime: '24:00:00', // Permite ver clases y eventos de las 22:00 y más allá
     scrollTime: '08:00:00',
     allDaySlot: false,
     headerToolbar: {
@@ -214,6 +301,41 @@ function initCalendar() {
     editable: false,
     selectable: false,
     dayMaxEvents: true,
+    eventContent: function (arg) {
+      if (arg.event.extendedProps && arg.event.extendedProps.es_compartido) {
+        let items = arg.event.extendedProps.items || [];
+        if (!items.length) {
+          if (arg.event.extendedProps.evento_alumno) items.push({ tipo: 'alumno', titulo: arg.event.extendedProps.evento_alumno.nombre_alumno || arg.event.extendedProps.evento_alumno.title, datos: arg.event.extendedProps.evento_alumno });
+          if (arg.event.extendedProps.evento_profesor) items.push({ tipo: 'profesor', titulo: arg.event.extendedProps.evento_profesor.titulo, datos: arg.event.extendedProps.evento_profesor });
+        }
+        const total = items.length || 2;
+        const partsHtml = items.map((it, idx) => {
+          const isAlumno = it.tipo === 'alumno';
+          const icon = isAlumno ? '👤' : '🎓';
+          const name = it.titulo || (isAlumno ? (it.nombre_alumno || 'Alumno') : 'Evento');
+          const partClass = isAlumno ? 'fc-part-alumno' : 'fc-part-profesor';
+          const dividerHtml = idx < items.length - 1 ? '<div class="fc-split-divider"></div>' : '';
+          return `
+            <div class="fc-split-part ${partClass}" title="${icon} ${escapeHtml(name)}">
+              <span class="fc-split-icon">${icon}</span>
+              <span class="fc-split-text">${escapeHtml(name)}</span>
+            </div>
+            ${dividerHtml}
+          `;
+        }).join('');
+
+        const summaryTitle = items.map(it => (it.tipo === 'alumno' ? '👤 ' : '🎓 ') + (it.titulo || '')).join(' | ');
+
+        return {
+          html: `
+            <div class="fc-split-event-wrapper fc-partes-${total}" title="${escapeHtml(summaryTitle)}">
+              ${partsHtml}
+            </div>
+          `
+        };
+      }
+      return undefined;
+    },
     events: function (fetchInfo, successCallback, failureCallback) {
       showStatus('Cargando…');
       fetchEvents(fetchInfo)
@@ -278,7 +400,7 @@ function registerServiceWorker() {
   if (!isSecure) return;
 
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('service-worker.js', { scope: './' }).catch(() => {});
+    navigator.serviceWorker.register('service-worker.js', { scope: './' }).catch(() => { });
   });
 }
 

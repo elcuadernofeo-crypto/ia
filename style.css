@@ -413,4 +413,106 @@ body {
   border-color: var(--neon-magenta) !important;
 }
 
-/* Pasos de despliegue: DESPLIEGUE.txt */
+/* Eventos de profesor en móvil */
+.fc-evento-profesor {
+  background: linear-gradient(135deg, #c59b27 0%, #9a7618 100%) !important;
+  border: 1px solid #ffd700 !important;
+  color: #ffffff !important;
+  font-weight: 700;
+  box-shadow: 0 0 8px rgba(218, 165, 32, 0.4) !important;
+}
+
+/* Casilla dividida en la App móvil (división horizontal: uno encima de otro, 2, 3 o más partes ocupando 1 sola celda) */
+.fc-event.fc-evento-dividido {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  border-radius: 6px !important;
+  width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.fc-split-event-wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4) !important;
+  box-sizing: border-box !important;
+}
+
+.fc-split-part,
+.fc-split-half {
+  flex: 1 1 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  padding: 1px 5px !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+  overflow: hidden !important;
+  user-select: none !important;
+}
+
+.fc-part-alumno,
+.fc-split-top {
+  background: linear-gradient(135deg, #1e70bf 0%, #0d47a1 100%) !important;
+  color: #ffffff !important;
+}
+
+.fc-split-divider {
+  width: 100% !important;
+  height: 1px !important;
+  min-height: 1px !important;
+  background: linear-gradient(to right, #00f2ff, #ffffff, #ffd700) !important;
+  box-shadow: 0 0 3px rgba(255, 255, 255, 0.7) !important;
+}
+
+.fc-part-profesor,
+.fc-split-bottom {
+  background: linear-gradient(135deg, #c59b27 0%, #9a7618 100%) !important;
+  color: #ffffff !important;
+}
+
+.fc-split-icon {
+  font-size: 10px !important;
+  line-height: 1 !important;
+  flex-shrink: 0 !important;
+}
+
+.fc-split-text {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.1 !important;
+}
+
+/* Optimización para división en 3 o más partes horizontales en el móvil */
+.fc-partes-3 .fc-split-part,
+.fc-partes-4 .fc-split-part {
+  padding: 0 3px !important;
+  gap: 2px !important;
+}
+
+.fc-partes-3 .fc-split-icon,
+.fc-partes-4 .fc-split-icon {
+  font-size: 8.5px !important;
+}
+
+.fc-partes-3 .fc-split-text,
+.fc-partes-4 .fc-split-text {
+  font-size: 9px !important;
+  font-weight: 600 !important;
+}
