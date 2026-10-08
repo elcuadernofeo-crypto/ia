@@ -26,6 +26,14 @@ var HOUR_END = 21; // Franja base de huecos libres (8:00 a 21:00). Las clases de
 var CLASS_COLOR = '#3498db';
 var PROF_COLOR = '#c59b27';
 
+function getSpreadsheet_() {
+  try {
+    var active = SpreadsheetApp.getActiveSpreadsheet();
+    if (active) return active;
+  } catch (e) {}
+  return SpreadsheetApp.openById(SPREADSHEET_ID);
+}
+
 function doGet(e) {
   e = e || {};
   var p = e.parameter || {};
@@ -35,6 +43,19 @@ function doGet(e) {
 
   if (!token || token !== API_TOKEN) {
     return jsonOut({ error: 'unauthorized' });
+  }
+
+  // Diagnóstico rápido de versión y hojas
+  if (p.ping === '1' || p.ping === 'true') {
+    var ssTest = getSpreadsheet_();
+    var sheetsList = ssTest.getSheets().map(function(s) { return s.getName(); });
+    return jsonOut({
+      status: 'ok',
+      version: '2026-10-08-prof-events-v2',
+      spreadsheetName: ssTest.getName(),
+      spreadsheetId: ssTest.getId(),
+      sheets: sheetsList
+    });
   }
 
   if (!startStr || !endStr) {
@@ -99,7 +120,7 @@ function writeSheetFromRows_(sheet, headers, rows) {
 }
 
 function writePrivateSheets_(body) {
-  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var ss = getSpreadsheet_();
   var al = body.alumnos;
   var cl = body.clases;
   var nt = body.notas;
@@ -139,8 +160,24 @@ function writePrivateSheets_(body) {
   }
 }
 
+/**
+ * Función de prueba para ejecutar manualmente en Apps Script (botón "Ejecutar"):
+ * Verifica acceso a la hoja y crea la pestaña EventosProfesor de inmediato.
+ */
+function testCrearPestanaEventosProfesor() {
+  var ss = getSpreadsheet_();
+  Logger.log("Documento abierto: " + ss.getName() + " (ID: " + ss.getId() + ")");
+  var sh = ensureSheet_(ss, SHEET_EVENTOS_PROFESOR);
+  Logger.log("Pestaña asegurada: " + sh.getName());
+  var headers = ['id', 'fecha', 'hora', 'titulo', 'descripcion', 'color'];
+  if (sh.getLastRow() === 0) {
+    sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+    Logger.log("Cabeceras insertadas con éxito.");
+  }
+}
+
 function buildEvents_(startStr, endStr) {
-  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var ss = getSpreadsheet_();
   var alumnoMap = readAlumnoMap_(ss.getSheetByName(SHEET_ALUMNO));
   var clasesRows = readTable_(ss.getSheetByName(SHEET_CLASES));
   var notasMap = readNotasMap_(ss.getSheetByName(SHEET_NOTAS), startStr, endStr);
